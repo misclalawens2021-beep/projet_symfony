@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello {{ prenom2 }}{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        background: #31a1a1
+    }
+    .lawens { 
+        margin: 1px auto; 
+        max-width: 800px; 
+        width: 100%; 
+        font: 18px sans-serif; 
+        border: 1px solid #aaa;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        flex-direction: column;
+    }
+    .law {
+        display: flex;
+    }
+</style>
+
+<section class="law">
+    <div class="lawens">
+        <h1>Bonjour !</h1>
+        <p>Bienvenue dans {{ mon_site }}{{ pt }}</p>
+    </div>
+</section>
+
+{% endblock %}

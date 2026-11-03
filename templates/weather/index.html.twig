@@ -1,0 +1,529 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Simulateur météo{% endblock %}
+
+{% block body %}
+
+<style>
+/* ==========================================================================
+   Simulateur météo — feuille de style
+   Palette : ciel de crépuscule (fond) + or solaire (accent) + brume (cartes)
+   Polices : Fraunces (titres, chaleur organique) / Space Grotesk (UI, données)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --dusk-950: #0e1830;
+  --dusk-800: #1b2c54;
+  --dusk-600: #33507f;
+  --gold-400: #f2b25c;
+  --gold-300: #f7c987;
+  --mist-100: #f5f6fa;
+  --mist-200: #e8eaf1;
+  --ink-900: #12172a;
+  --ink-600: #565f78;
+  --teal-500: #4f9b93;
+  --rain-500: #4d7bb8;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Space Grotesk', 'Segoe UI', sans-serif;
+
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+}
+
+.weather-app * {
+  box-sizing: border-box;
+}
+
+.weather-app {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  min-height: 100vh;
+  background: var(--mist-100);
+  color: var(--ink-900);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.weather-app :focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 3px;
+}
+
+@media (max-width: 880px) {
+  .weather-app {
+    grid-template-columns: 1fr;
+  }
+}
+
+.weather-app .eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  margin: 0 0 0.9rem;
+}
+
+/* ------------------------------ Left panel ------------------------------ */
+
+.weather-panel {
+  position: relative;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 2.75rem);
+  background:
+    radial-gradient(120% 90% at 15% 0%, #24407a 0%, transparent 55%),
+    linear-gradient(160deg, var(--dusk-950) 0%, var(--dusk-800) 55%, var(--dusk-600) 100%);
+  color: var(--mist-100);
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-panel .eyebrow {
+  color: var(--gold-300);
+}
+
+.weather-panel h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  line-height: 1.2;
+  margin: 0 0 0.85rem;
+  max-width: 22ch;
+}
+
+.weather-panel .intro {
+  color: #c4cde3;
+  font-size: 0.92rem;
+  max-width: 40ch;
+  margin: 0 0 2.25rem;
+}
+
+.weather-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.weather-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #aeb9d6;
+}
+
+.weather-form output {
+  font-family: var(--font-ui);
+  color: var(--gold-300);
+  font-weight: 700;
+}
+
+.weather-form input[type="text"],
+.weather-form select {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--mist-100);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.85rem;
+  appearance: none;
+}
+
+.weather-form select {
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold-300) 50%),
+    linear-gradient(135deg, var(--gold-300) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.weather-form select option {
+  color: var(--ink-900);
+}
+
+.weather-form input[type="text"]::placeholder {
+  color: #8b96b8;
+}
+
+.weather-form input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--rain-500), var(--gold-400));
+  margin-top: 0.35rem;
+}
+
+.weather-form input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mist-100);
+  border: 3px solid var(--gold-400);
+  cursor: pointer;
+}
+
+.weather-form input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mist-100);
+  border: 3px solid var(--gold-400);
+  cursor: pointer;
+}
+
+.weather-form button[type="submit"] {
+  margin-top: 0.5rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--dusk-950);
+  background: linear-gradient(100deg, var(--gold-300), var(--gold-400));
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.weather-form button[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -8px rgba(242, 178, 92, 0.65);
+}
+
+.weather-form button[type="submit"]:active {
+  transform: translateY(0);
+}
+
+/* ------------------------------ Right panel ------------------------------ */
+
+.forecast {
+  padding: clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 3.5rem);
+}
+
+.forecast-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.forecast-head .eyebrow {
+  color: var(--ink-600);
+  margin-bottom: 0.35rem;
+}
+
+.forecast-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 500;
+  margin: 0;
+}
+
+.weather-app button.secondary {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--dusk-800);
+  background: var(--mist-200);
+  border: 1px solid var(--mist-200);
+  border-radius: 999px;
+  padding: 0.55rem 1.05rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.weather-app button.secondary:hover {
+  background: #dfe3ee;
+  border-color: #d1d6e6;
+}
+
+/* Current conditions */
+
+.now-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, var(--dusk-800), var(--dusk-600));
+  color: var(--mist-100);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2.25rem;
+  flex-wrap: wrap;
+}
+
+.now-card .weather-icon {
+  font-size: 2.75rem;
+  line-height: 1;
+}
+
+.now-card p#now-label {
+  margin: 0 0 0.15rem;
+  color: #c4cde3;
+  font-size: 0.85rem;
+}
+
+.now-card strong#now-temp {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 500;
+}
+
+.now-card dl {
+  display: flex;
+  gap: 1.75rem;
+  margin: 0 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.now-card dl div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.now-card dt {
+  font-size: 0.72rem;
+  color: #9aa6c5;
+}
+
+.now-card dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Section headings */
+
+.forecast h3 {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink-900);
+  margin: 0 0 0.9rem;
+}
+
+/* Hourly strip */
+
+.hourly {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2.25rem;
+  scrollbar-width: thin;
+}
+
+.hourly article {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fff;
+  border: 1px solid var(--mist-200);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  min-width: 80px;
+  text-align: center;
+}
+
+.hourly article span {
+  font-size: 0.78rem;
+  color: var(--ink-600);
+}
+
+.hourly article b {
+  font-size: 1.4rem;
+  font-weight: 400;
+}
+
+.hourly article strong {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+}
+
+.hourly article small {
+  color: var(--rain-500);
+  font-size: 0.72rem;
+}
+
+/* Daily list */
+
+.daily {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--mist-200);
+  margin-bottom: 2rem;
+}
+
+.daily article {
+  display: grid;
+  grid-template-columns: 1.3fr auto 1.3fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0.25rem;
+  border-bottom: 1px solid var(--mist-200);
+}
+
+.daily article span:first-child {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.daily article b {
+  font-size: 1.35rem;
+  font-weight: 400;
+  justify-self: center;
+}
+
+.daily article span:nth-child(3) {
+  color: var(--ink-600);
+  font-size: 0.85rem;
+}
+
+.daily article strong {
+  font-family: var(--font-ui);
+  justify-self: end;
+  font-size: 0.95rem;
+  color: var(--ink-600);
+}
+
+.daily article strong em {
+  font-style: normal;
+  color: var(--ink-900);
+}
+
+.disclaimer {
+  font-size: 0.78rem;
+  color: var(--ink-600);
+  border-top: 1px dashed var(--mist-200);
+  padding-top: 1rem;
+}
+
+/* --------------------------- Reduced motion --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-form button[type="submit"],
+  .weather-app button.secondary {
+    transition: none;
+  }
+}
+</style>
+
+<main class="weather-app">
+    <section class="weather-panel" aria-labelledby="weather-title">
+        <p class="eyebrow">SIMULATION LOCALE</p>
+        <h1 id="weather-title">Quelle météo voulez-vous explorer&nbsp;?</h1>
+        <p class="intro">Réglez les paramètres puis générez une prévision fictive pour les prochaines heures et les cinq jours à venir.</p>
+
+        <form id="weather-form" class="weather-form">
+            <label>Ville
+                <input id="city" name="city" type="text" value="Paris" maxlength="30" required>
+            </label>
+            <label>Saison
+                <select id="season" name="season">
+                    <option value="winter">Hiver</option>
+                    <option value="spring" selected>Printemps</option>
+                    <option value="summer">Été</option>
+                    <option value="autumn">Automne</option>
+                </select>
+            </label>
+            <label>Conditions initiales
+                <select id="condition" name="condition">
+                    <option value="sun">Ensoleillé</option>
+                    <option value="cloud" selected>Nuageux</option>
+                    <option value="rain">Pluvieux</option>
+                    <option value="storm">Orageux</option>
+                    <option value="snow">Neigeux</option>
+                </select>
+            </label>
+            <label>Température de départ <output id="temperature-value">16 °C</output>
+                <input id="temperature" name="temperature" type="range" min="-10" max="38" value="16">
+            </label>
+            <button type="submit">Générer ma simulation</button>
+        </form>
+    </section>
+
+    <section id="forecast" class="forecast" aria-live="polite">
+        <div class="forecast-head">
+            <div><p class="eyebrow">PRÉVISION SIMULÉE</p><h2 id="place">Paris</h2></div>
+            <button id="regenerate" class="secondary" type="button">↻ Nouvelle variation</button>
+        </div>
+        <div class="now-card">
+            <span id="now-icon" class="weather-icon" aria-hidden="true">☁️</span>
+            <div><p id="now-label">Nuageux</p><strong id="now-temp">16°</strong></div>
+            <dl><div><dt>Ressenti</dt><dd id="feels">15°</dd></div><div><dt>Humidité</dt><dd id="humidity">68 %</dd></div><div><dt>Vent</dt><dd id="wind">14 km/h</dd></div></dl>
+        </div>
+        <h3>Les prochaines heures</h3>
+        <div id="hourly" class="hourly"></div>
+        <h3>Les 5 prochains jours</h3>
+        <div id="daily" class="daily"></div>
+        <p class="disclaimer">Données fictives générées pour la démonstration — ce simulateur ne fournit pas de données météo réelles.</p>
+    </section>
+</main>
+
+<script>
+(() => {
+    const states = {
+        sun: {label: 'Ensoleillé', icon: '☀️', rain: 5, shift: 3},
+        cloud: {label: 'Nuageux', icon: '☁️', rain: 25, shift: 1},
+        rain: {label: 'Pluvieux', icon: '🌧️', rain: 72, shift: -2},
+        storm: {label: 'Orageux', icon: '⛈️', rain: 88, shift: -3},
+        snow: {label: 'Neigeux', icon: '❄️', rain: 58, shift: -4}
+    };
+    const seasonShift = {winter: -7, spring: 0, summer: 8, autumn: -2};
+    const form = document.querySelector('#weather-form');
+    const temp = document.querySelector('#temperature');
+    const tempValue = document.querySelector('#temperature-value');
+    let variation = 0;
+    temp.addEventListener('input', () => tempValue.textContent = `${temp.value} °C`);
+    const random = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const pickState = (base, index) => {
+        const keys = Object.keys(states);
+        if (index === 0 || Math.random() > .43) return base;
+        return keys[random(0, keys.length - 1)];
+    };
+    const render = (scroll = false) => {
+        const city = document.querySelector('#city').value.trim() || 'Votre ville';
+        const key = document.querySelector('#condition').value;
+        const state = states[key];
+        const base = Number(temp.value) + seasonShift[document.querySelector('#season').value];
+        document.querySelector('#place').textContent = city;
+        document.querySelector('#now-icon').textContent = state.icon;
+        document.querySelector('#now-label').textContent = state.label;
+        document.querySelector('#now-temp').textContent = `${base}°`;
+        document.querySelector('#feels').textContent = `${base + state.shift + variation}°`;
+        document.querySelector('#humidity').textContent = `${Math.min(98, state.rain + random(18, 38))} %`;
+        document.querySelector('#wind').textContent = `${random(7, 31)} km/h`;
+        const currentHour = new Date().getHours();
+        document.querySelector('#hourly').innerHTML = Array.from({length: 6}, (_, i) => {
+            const hour = `${String((currentHour + i * 2) % 24).padStart(2, '0')}h`;
+            const hourState = states[pickState(key, i)];
+            const hourTemp = base + state.shift + random(-2, 3) + (i > 3 ? -1 : 0);
+            return `<article><span>${hour}</span><b>${hourState.icon}</b><strong>${hourTemp}°</strong><small>${hourState.rain + random(0, 12)} %</small></article>`;
+        }).join('');
+        const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        const today = new Date();
+        document.querySelector('#daily').innerHTML = Array.from({length: 5}, (_, i) => {
+            const date = new Date(today); date.setDate(today.getDate() + i);
+            const dayState = states[pickState(key, i)];
+            const high = base + state.shift + random(0, 5); const low = high - random(5, 10);
+            return `<article><span>${i === 0 ? 'Aujourd’hui' : days[date.getDay()]}</span><b>${dayState.icon}</b><span>${dayState.label}</span><strong>${low}° <em>${high}°</em></strong></article>`;
+        }).join('');
+        if (scroll) document.querySelector('#forecast').scrollIntoView({behavior: 'smooth', block: 'start'});
+    };
+    form.addEventListener('submit', event => { event.preventDefault(); variation = random(-2, 2); render(true); });
+    document.querySelector('#regenerate').addEventListener('click', () => { variation = random(-3, 3); render(false); });
+    render();
+})();
+</script>
+{% endblock %}

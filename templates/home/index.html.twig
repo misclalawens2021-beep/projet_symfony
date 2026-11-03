@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello {{ name_1 }}{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        background: #ff0000;
+    }
+    .m { 
+        margin: 1px 1px 1px 1px; 
+        max-width: 1600px; 
+        width: 25%; 
+        font: 18px sans-serif; 
+        background: #baa000;
+        font-family: sans-serif;
+        border: 1px solid #000;
+        border-radius: 50px;
+    }
+    .m h1, .m p {
+        margin: 15px;
+    }
+    .lawens {
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: row;
+        text-align: center; 
+        align-items: center; 
+        gap: 5%;
+    }
+</style>
+
+<section class="lawens">
+    <div class="m">
+        <h1>{{ name_1 }}</h1>
+        <p>Je m'appelle {{ name_1 }} {{ name_2 }}{{ pt }}<br>
+        J'ai {{ age_mike }} ans{{ pt }}</p>
+    </div>
+    <div class="m">
+        <h1>{{ name_1 }}</h1>
+        <p>Je m'appelle {{ name_1 }} {{ name_2 }}{{ pt }}<br>
+        J'ai {{ age_mike }} ans{{ pt }}</p>
+    </div>
+    <div class="m">
+        <h1>{{ name_1 }}</h1>
+        <p>Je m'appelle {{ name_1 }} {{ name_2 }}{{ pt }}<br>
+        J'ai {{ age_mike }} ans{{ pt }}</p>
+    </div>
+</section>
+{% endblock %}
